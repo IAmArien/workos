@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
         if (ex.getErrors().isEmpty()) {
             response = ApiResponse.error(
                 HttpResponseStatus.fromCode(ex.getStatusCode()),
-                new ApiErrors(ex.getMessage(), null)
+                new ApiErrors(ex.getMessage(), ex.getErrorCode())
             );
         } else {
             response = ApiResponse.errors(

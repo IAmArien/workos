@@ -13,6 +13,11 @@ import java.util.Optional;
 @Repository
 public class AuthRepositoryImpl implements AuthRepository {
 
+    private static final String CODE_EMAIL_ALREADY_EXISTS = "EMAE001";
+    private static final String CODE_EMAIL_IS_MISSING = "EMIM001";
+    private static final String CODE_EMAIL_IS_NON_EXISTENT = "EMINE001";
+    private static final String CODE_PASSWORD_IS_MISSING = "PWIM001";
+
     private final AuthJpaRepository jpa;
 
     public AuthRepositoryImpl(AuthJpaRepository jpa) {
@@ -22,11 +27,14 @@ public class AuthRepositoryImpl implements AuthRepository {
     @Override
     public UserCredentials getUserCredentialsByEmail(String email) {
         if (email.trim().isEmpty()) {
-            throw new UnprocessableEntityException("Request parameter email is required.");
+            throw new UnprocessableEntityException("Request parameter email is missing", CODE_EMAIL_IS_MISSING);
         }
         Optional<UserCredentials> userCredentials = this.jpa.findByUserEmail(email);
         return userCredentials.orElseThrow(() ->
-            new NotFoundException(String.format("Unable to find user with the email: %s", email))
+            new NotFoundException(
+                String.format("Unable to find user with the email: %s", email),
+                CODE_EMAIL_IS_NON_EXISTENT
+            )
         );
     }
 
@@ -35,7 +43,10 @@ public class AuthRepositoryImpl implements AuthRepository {
         String userEmail = userCredentials.getUserEmail();
         Optional<UserCredentials> optionalUserCredentials = this.jpa.findByUserEmail(userEmail);
         if (optionalUserCredentials.isPresent()) {
-            throw new BadRequestException(String.format("Email address for %s already exists", userEmail));
+            throw new BadRequestException(
+                String.format("Email address for %s already exists", userEmail),
+                CODE_EMAIL_ALREADY_EXISTS
+            );
         }
         if (isValidUserCredentials(userCredentials)) {
             this.jpa.save(userCredentials);
@@ -45,13 +56,13 @@ public class AuthRepositoryImpl implements AuthRepository {
     private boolean isValidUserCredentials(UserCredentials userCredentials) {
         boolean hasError = false;
         UnprocessableEntityException exception =
-            new UnprocessableEntityException("Required parameter/s is/are missing.");
+            new UnprocessableEntityException("Required parameter/s is/are missing.", null);
         if (userCredentials.getUserEmail().trim().isEmpty()) {
-            exception.addError(new ApiErrors("Required parameter email is missing", "EM001"));
+            exception.addError(new ApiErrors("Required parameter email is missing", CODE_EMAIL_IS_MISSING));
             hasError = true;
         }
         if (userCredentials.getUserPassword().trim().isEmpty()) {
-            exception.addError(new ApiErrors("Required parameter password is missing", "PW001"));
+            exception.addError(new ApiErrors("Required parameter password is missing", CODE_PASSWORD_IS_MISSING));
             hasError = true;
         }
         if (hasError) throw exception;
