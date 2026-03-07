@@ -3,6 +3,7 @@ package com.workos.corporate.presentation.constants;
 public enum HttpResponseStatus {
     SUCCESS(200, "Operation successful"),
     CREATED(201, "Resource created"),
+    BAD_REQUEST(400, "Bad request"),
     UNAUTHORIZED(401, "Unauthorized access"),
     FORBIDDEN(403, "Forbidden"),
     NOT_FOUND(404, "Resource not found"),

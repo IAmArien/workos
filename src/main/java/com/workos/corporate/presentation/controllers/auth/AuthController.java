@@ -4,6 +4,7 @@ import com.workos.corporate.domain.auth.model.UserCredentials;
 import com.workos.corporate.infrastructure.auth.usecases.AuthUseCases;
 import com.workos.corporate.presentation.constants.HttpResponseStatus;
 import com.workos.corporate.presentation.controllers.auth.dto.request.CreateUserCredentialsRequestDto;
+import com.workos.corporate.presentation.controllers.auth.dto.response.UserCredentialsResponseDto;
 import com.workos.corporate.presentation.mappers.auth.UserCredentialsMapper;
 import com.workos.corporate.shared.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -22,19 +23,21 @@ public class AuthController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<UserCredentials>> getUserCredentialsByEmail(@RequestParam String email) {
+    public ResponseEntity<ApiResponse<UserCredentialsResponseDto>> getUserCredentialsByEmail(@RequestParam String email) {
         UserCredentials userCredentials = useCases.getUserCredentialsByEmail().execute(email);
-        return ApiResponse.success(userCredentials, HttpResponseStatus.SUCCESS, "User fetched successfully")
+        UserCredentialsResponseDto responseDto = userCredentialsMapper.toResponseDto(userCredentials);
+        return ApiResponse.success(responseDto, HttpResponseStatus.SUCCESS, "User fetched successfully")
             .asEntity();
     }
 
     @PostMapping("create")
-    public ResponseEntity<ApiResponse<UserCredentials>> createUserCredentials(
+    public ResponseEntity<ApiResponse<UserCredentialsResponseDto>> createUserCredentials(
         @RequestBody CreateUserCredentialsRequestDto dto
     ) {
-        UserCredentials userCredentials = userCredentialsMapper.toEntity(dto);
-        this.useCases.createUserCredentials().execute(userCredentials);
-        return ApiResponse.success(userCredentials, HttpResponseStatus.CREATED, "User created successfully")
+        useCases.createUserCredentials().execute(userCredentialsMapper.toEntity(dto));
+        UserCredentials userCredentials = useCases.getUserCredentialsByEmail().execute(dto.emailAddress());
+        UserCredentialsResponseDto responseDto = userCredentialsMapper.toResponseDto(userCredentials);
+        return ApiResponse.success(responseDto, HttpResponseStatus.CREATED, "User created successfully")
             .asEntity();
     }
 }

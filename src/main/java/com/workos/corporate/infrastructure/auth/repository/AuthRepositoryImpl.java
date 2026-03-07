@@ -2,6 +2,7 @@ package com.workos.corporate.infrastructure.auth.repository;
 
 import com.workos.corporate.domain.auth.model.UserCredentials;
 import com.workos.corporate.domain.auth.repository.AuthRepository;
+import com.workos.corporate.shared.exception.BadRequestException;
 import com.workos.corporate.shared.exception.NotFoundException;
 import com.workos.corporate.shared.exception.UnprocessableEntityException;
 import com.workos.corporate.shared.response.ApiErrors;
@@ -31,6 +32,11 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     @Override
     public void createUserCredentials(UserCredentials userCredentials) {
+        String userEmail = userCredentials.getUserEmail();
+        Optional<UserCredentials> optionalUserCredentials = this.jpa.findByUserEmail(userEmail);
+        if (optionalUserCredentials.isPresent()) {
+            throw new BadRequestException(String.format("Email address for %s already exists", userEmail));
+        }
         if (isValidUserCredentials(userCredentials)) {
             this.jpa.save(userCredentials);
         }
