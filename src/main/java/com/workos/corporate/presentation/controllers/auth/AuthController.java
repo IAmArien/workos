@@ -2,11 +2,14 @@ package com.workos.corporate.presentation.controllers.auth;
 
 import com.workos.corporate.domain.auth.model.UserAuthentication;
 import com.workos.corporate.domain.auth.model.UserCredentials;
+import com.workos.corporate.domain.auth.model.UserToken;
 import com.workos.corporate.infrastructure.auth.usecases.AuthUseCases;
 import com.workos.corporate.presentation.constants.HttpResponseStatus;
 import com.workos.corporate.presentation.controllers.auth.dto.request.AuthenticateUserRequestDto;
 import com.workos.corporate.presentation.controllers.auth.dto.request.CreateUserCredentialsRequestDto;
+import com.workos.corporate.presentation.controllers.auth.dto.request.RefreshAuthenticationRequestDto;
 import com.workos.corporate.presentation.controllers.auth.dto.response.AuthenticateUserResponseDto;
+import com.workos.corporate.presentation.controllers.auth.dto.response.AuthenticationTokenResponseDto;
 import com.workos.corporate.presentation.controllers.auth.dto.response.UserCredentialsResponseDto;
 import com.workos.corporate.presentation.mappers.auth.AuthenticateUserMapper;
 import com.workos.corporate.presentation.mappers.auth.UserCredentialsMapper;
@@ -58,6 +61,16 @@ public class AuthController {
         UserAuthentication userAuthentication = useCases.authenticateUser().execute(dto.email(), dto.password());
         AuthenticateUserResponseDto responseDto = authenticateUserMapper.toResponseDto(userAuthentication);
         return ApiResponse.success(responseDto, HttpResponseStatus.SUCCESS, "User logged in successfully")
+            .asEntity();
+    }
+
+    @PostMapping("refresh")
+    public ResponseEntity<ApiResponse<AuthenticationTokenResponseDto>> refreshAuthentication(
+        @RequestBody RefreshAuthenticationRequestDto dto
+    ) {
+        UserToken userToken = useCases.refreshAuthentication().execute(dto.refreshToken());
+        AuthenticationTokenResponseDto responseDto = authenticateUserMapper.toResponseDto(userToken);
+        return ApiResponse.success(responseDto, HttpResponseStatus.CREATED, "Refresh token successful")
             .asEntity();
     }
 }

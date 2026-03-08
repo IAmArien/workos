@@ -5,12 +5,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class WebTokenUtils {
@@ -62,7 +63,17 @@ public class WebTokenUtils {
             .getSubject();
     }
 
-    public String getAuthenticatedUser() {
-        return (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+    public String getCurrentAuthenticatedUser() {
+        return getCurrentAuthenticatedUserId().orElseThrow(() ->
+            new IllegalStateException("No current authenticated user found")
+        );
+    }
+
+    private Optional<String> getCurrentAuthenticatedUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(authentication.getPrincipal().toString());
     }
 }

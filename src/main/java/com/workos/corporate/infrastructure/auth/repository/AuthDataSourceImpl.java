@@ -2,6 +2,7 @@ package com.workos.corporate.infrastructure.auth.repository;
 
 import com.workos.corporate.domain.auth.model.UserAuthentication;
 import com.workos.corporate.domain.auth.model.UserCredentials;
+import com.workos.corporate.domain.auth.model.UserToken;
 import com.workos.corporate.domain.auth.repository.AuthDataSource;
 import com.workos.corporate.domain.auth.repository.AuthRepository;
 import org.springframework.stereotype.Component;
@@ -28,5 +29,10 @@ public class AuthDataSourceImpl implements AuthDataSource {
     @Override
     public UserAuthentication authenticateUser(String email, String password) {
         return this.authRepository.authenticateUser(email, password);
+    }
+
+    @Override
+    public UserToken refreshAuthentication(String refreshToken) {
+        return this.authRepository.refreshAuthentication(refreshToken);
     }
 }

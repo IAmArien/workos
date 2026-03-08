@@ -27,6 +27,8 @@ public class AuthRepositoryImpl implements AuthRepository {
     private static final String CODE_EM_PASS_IS_MISSING = "EMPWIM001";
     private static final String CODE_EM_PASS_IS_INVALID = "EMPWIINV001";
     private static final String CODE_ACCOUNT_NOT_REGISTERED = "ACCNREG001";
+    private static final String CODE_REFRESH_TOKEN_IS_MISSING = "RTKIM001";
+    private static final String CODE_REFRESH_TOKEN_IS_INVALID = "RTKINV001";
 
     private final AuthJpaRepository authJpa;
     private final UserDetailsJpaRepository userJpa;
@@ -76,35 +78,41 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     @Override
     public UserAuthentication authenticateUser(String email, String password) {
-        if (email.trim().isEmpty() || password.trim().isEmpty()) {
+        if ((email == null || password == null) || (email.trim().isEmpty() || password.trim().isEmpty())) {
             throw new BadRequestException("Email address or password must not be empty", CODE_EM_PASS_IS_MISSING);
         }
-        Optional<UserCredentials> optionalUserCredentials = this.authJpa.findByUserEmail(email);
-        if (optionalUserCredentials.isEmpty()) {
-            throw new UnauthorizedException("Email address or password is incorrect", CODE_EM_PASS_IS_INVALID);
-        }
-        UserCredentials userCredentials = optionalUserCredentials.get();
-        boolean isAuthenticated = securityConfig.passwordEncoder().matches(password, userCredentials.getUserPassword());
-        if (isAuthenticated) {
-            Optional<UserDetails> optionalUserDetails = this.userJpa.findByUserId(userCredentials.getUserId());
-            if (optionalUserDetails.isEmpty()) {
-                throw new UnauthorizedException(
+        UserCredentials userCredentials = this.authJpa.findByUserEmail(email).orElseThrow(() ->
+            new UnauthorizedException("Email address or password is incorrect", CODE_EM_PASS_IS_INVALID));
+        if (securityConfig.passwordEncoder().matches(password, userCredentials.getUserPassword())) {
+            UserDetails userDetails = this.userJpa.findByUserId(userCredentials.getUserId()).orElseThrow(() ->
+                new UnauthorizedException(
                     String.format("Account registration for %s is not yet completed", email),
                     CODE_ACCOUNT_NOT_REGISTERED
-                );
-            }
-            UserDetails userDetails = optionalUserDetails.get();
+                ));
             UserToken userToken = new UserToken(
                 webTokenUtils.generateAccessToken(userCredentials.getUserId()),
                 webTokenUtils.generateRefreshToken(userCredentials.getUserId())
             );
-            return new UserAuthentication(
-                userCredentials,
-                userDetails,
-                userToken
-            );
+            return UserAuthentication.create(userCredentials, userDetails, userToken);
         }
         throw new UnauthorizedException("Email address or password is incorrect", CODE_EM_PASS_IS_INVALID);
+    }
+
+    @Override
+    public UserToken refreshAuthentication(String refreshToken) {
+        if (refreshToken == null || refreshToken.trim().isEmpty()) {
+            throw new BadRequestException("Refresh token must not be empty", CODE_REFRESH_TOKEN_IS_MISSING);
+        }
+        if (webTokenUtils.validateToken(refreshToken)) {
+            String userId = webTokenUtils.extractUserId(refreshToken);
+            UserCredentials userCredentials = this.authJpa.findByUserId(userId).orElseThrow(() ->
+                new UnauthorizedException("Refresh token is invalid", CODE_REFRESH_TOKEN_IS_INVALID));
+            return new UserToken(
+                webTokenUtils.generateAccessToken(userCredentials.getUserId()),
+                webTokenUtils.generateRefreshToken(userCredentials.getUserId())
+            );
+        }
+        throw new UnauthorizedException("Refresh token is invalid", CODE_REFRESH_TOKEN_IS_INVALID);
     }
 
     private boolean isValidUserCredentials(UserCredentials userCredentials) {
