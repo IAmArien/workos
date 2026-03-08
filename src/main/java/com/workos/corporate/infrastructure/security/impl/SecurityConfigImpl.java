@@ -1,8 +1,8 @@
 package com.workos.corporate.infrastructure.security.impl;
 
-import com.workos.corporate.infrastructure.security.ApiKeyFilter;
+import com.workos.corporate.infrastructure.security.AuthenticationFilter;
 import com.workos.corporate.infrastructure.security.SecurityConfig;
-import com.workos.corporate.infrastructure.security.WebTokenAuthFilter;
+import com.workos.corporate.infrastructure.security.SecurityEndpoints;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -17,12 +17,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfigImpl implements SecurityConfig {
 
-    private final ApiKeyFilter apiKeyFilter;
-    private final WebTokenAuthFilter webTokenAuthFilter;
+    private final AuthenticationFilter authenticationFilter;
+    private final SecurityEndpoints securityEndpoints;
 
-    public SecurityConfigImpl(ApiKeyFilter apiKeyFilter, WebTokenAuthFilter webTokenAuthFilter) {
-        this.apiKeyFilter = apiKeyFilter;
-        this.webTokenAuthFilter = webTokenAuthFilter;
+    public SecurityConfigImpl(
+        AuthenticationFilter authenticationFilter,
+        SecurityEndpoints securityEndpoints
+    ) {
+        this.authenticationFilter = authenticationFilter;
+        this.securityEndpoints = securityEndpoints;
     }
 
     @Bean
@@ -37,9 +40,10 @@ public class SecurityConfigImpl implements SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(webTokenAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(securityEndpoints.publicEndpoints()).permitAll()
+                .anyRequest().authenticated())
+            .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(Customizer.withDefaults());
         return http.build();
     }
