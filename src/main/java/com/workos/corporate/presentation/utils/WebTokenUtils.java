@@ -2,11 +2,16 @@ package com.workos.corporate.presentation.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 public class WebTokenUtils {
@@ -56,5 +61,25 @@ public class WebTokenUtils {
             .parseClaimsJws(token)
             .getBody()
             .getSubject();
+    }
+
+    public boolean isValidPublicEndpoint(@NonNull HttpServletRequest request) {
+        List<String> validPublicEndpoints = List.of(
+            "/auth/login",
+            "/auth/refresh",
+            "/auth/create",
+            "/users/create"
+        );
+        boolean isValidPublicEndpoint = false;
+        for (String validPublicEndpoint : validPublicEndpoints) {
+            if (request.getServletPath().endsWith(validPublicEndpoint)) {
+                isValidPublicEndpoint = true;
+            }
+        }
+        return isValidPublicEndpoint;
+    }
+
+    public String getAuthenticatedUser() {
+        return (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }
