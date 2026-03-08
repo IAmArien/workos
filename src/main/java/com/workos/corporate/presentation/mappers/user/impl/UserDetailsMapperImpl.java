@@ -14,6 +14,7 @@ public class UserDetailsMapperImpl implements UserDetailsMapper {
         return new UserDetailsResponseDto(
             userDetails.getId(),
             userDetails.getUserId(),
+            userDetails.getEmailAddress(),
             userDetails.getFirstName(),
             userDetails.getMiddleName(),
             userDetails.getLastName(),

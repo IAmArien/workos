@@ -6,6 +6,7 @@ import jakarta.annotation.Nullable;
 public record UserDetailsResponseDto (
     long id,
     @JsonProperty("user_id") String userId,
+    @JsonProperty("email_address") String emailAddress,
     @JsonProperty("first_name") String firstName,
     @Nullable @JsonProperty("middle_name") String middleName,
     @JsonProperty("last_name") String lastName,
