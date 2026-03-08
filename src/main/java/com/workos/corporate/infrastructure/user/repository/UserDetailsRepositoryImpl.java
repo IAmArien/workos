@@ -2,6 +2,7 @@ package com.workos.corporate.infrastructure.user.repository;
 
 import com.workos.corporate.domain.user.model.UserDetails;
 import com.workos.corporate.domain.user.repository.UserDetailsRepository;
+import com.workos.corporate.shared.exception.ApiException;
 import com.workos.corporate.shared.exception.BadRequestException;
 import com.workos.corporate.shared.exception.NotFoundException;
 import com.workos.corporate.shared.exception.UnprocessableEntityException;
@@ -33,7 +34,7 @@ public class UserDetailsRepositoryImpl implements UserDetailsRepository {
         if (userId.trim().isEmpty()) {
             throw new BadRequestException(
                 "Request parameter userId is missing",
-                    CODE_USER_ID_IS_MISSING
+                CODE_USER_ID_IS_MISSING
             );
         }
         Optional<UserDetails> userDetails = this.jpa.findByUserId(userId);
@@ -61,59 +62,28 @@ public class UserDetailsRepositoryImpl implements UserDetailsRepository {
     }
 
     private boolean isValidUserDetails(UserDetails userDetails) {
-        boolean hasError = false;
         UnprocessableEntityException exception =
             new UnprocessableEntityException("Required parameter/s is/are missing.", null);
-        if (userDetails.getUserId().trim().isEmpty()) {
-            exception.addError(new ApiErrors("Required parameter userId is missing", CODE_USER_ID_IS_MISSING));
-            hasError = true;
-        }
-        if (userDetails.getEmailAddress().trim().isEmpty()) {
-            exception.addError(
-                new ApiErrors(
-                    "Required parameter email_address is missing",
-                    CODE_EMAIL_IS_MISSING
-                )
-            );
-            hasError = true;
-        }
-        if (userDetails.getFirstName().trim().isEmpty()) {
-            exception.addError(
-                new ApiErrors(
-                    "Required parameter first_name is missing",
-                    CODE_FIRST_NAME_IS_MISSING
-                )
-            );
-            hasError = true;
-        }
-        if (userDetails.getLastName().trim().isEmpty()) {
-            exception.addError(
-                new ApiErrors(
-                    "Required parameter last_name is missing",
-                    CODE_LAST_NAME_IS_MISSING
-                )
-            );
-            hasError = true;
-        }
-        if (userDetails.getPhoneNumber().trim().isEmpty()) {
-            exception.addError(
-                new ApiErrors(
-                    "Required parameter phone_number is missing",
-                    CODE_PHONE_NUMBER_IS_MISSING
-                )
-            );
-            hasError = true;
-        }
-        if (userDetails.getPhoneCountryCode().trim().isEmpty()) {
-            exception.addError(
-                new ApiErrors(
-                    "Required parameter phone_country_code is missing",
-                    CODE_PN_COUNTRY_CODE_IS_MISSING
-                )
-            );
-            hasError = true;
-        }
-        if (hasError) throw exception;
+        validateRequired(userDetails.getUserId(), "userId", CODE_USER_ID_IS_MISSING, exception);
+        validateRequired(userDetails.getEmailAddress(), "email_address", CODE_EMAIL_IS_MISSING, exception);
+        validateRequired(userDetails.getFirstName(), "first_name", CODE_FIRST_NAME_IS_MISSING, exception);
+        validateRequired(userDetails.getLastName(), "last_name", CODE_LAST_NAME_IS_MISSING, exception);
+        validateRequired(userDetails.getPhoneNumber(), "phone_number", CODE_PHONE_NUMBER_IS_MISSING, exception);
+        validateRequired(userDetails.getPhoneCountryCode(), "phone_country_code", CODE_PN_COUNTRY_CODE_IS_MISSING, exception);
+        if (!exception.getErrors().isEmpty()) throw exception;
         return true;
+    }
+
+    private void validateRequired(
+        String value,
+        String fieldName,
+        String errorCode,
+        ApiException exception
+    ) {
+        if (value == null || value.trim().isEmpty()) {
+            exception.addError(
+                new ApiErrors("Required parameter " + fieldName + " is missing", errorCode)
+            );
+        }
     }
 }
