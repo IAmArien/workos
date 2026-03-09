@@ -4,5 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record AuthenticationTokenResponseDto(
     @JsonProperty("access_token") String accessToken,
-    @JsonProperty("refresh_token") String refreshToken
+    @JsonProperty("access_token_expires_at") String accessTokenExpiresAt,
+    @JsonProperty("refresh_token") String refreshToken,
+    @JsonProperty("refresh_token_expires_at") String refreshTokenExpiresAt
 ) { }

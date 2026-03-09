@@ -13,8 +13,10 @@ import com.workos.corporate.shared.exception.NotFoundException;
 import com.workos.corporate.shared.exception.UnauthorizedException;
 import com.workos.corporate.shared.exception.UnprocessableEntityException;
 import com.workos.corporate.shared.response.ApiErrors;
+import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -104,9 +106,15 @@ public class AuthRepositoryImpl implements AuthRepository {
                     String.format("Account registration for %s is not yet completed", email),
                     CODE_ACCOUNT_NOT_REGISTERED
                 ));
+            Pair<String, LocalDateTime> accessTokens =
+                webTokenUtils.generateAccessToken(userCredentials.getUserId());
+            Pair<String, LocalDateTime> refreshTokens =
+                webTokenUtils.generateRefreshToken(userCredentials.getUserId());
             UserToken userToken = new UserToken(
-                webTokenUtils.generateAccessToken(userCredentials.getUserId()),
-                webTokenUtils.generateRefreshToken(userCredentials.getUserId())
+                accessTokens.a,
+                accessTokens.b,
+                refreshTokens.a,
+                refreshTokens.b
             );
             return UserAuthentication.create(userCredentials, userDetails, userToken);
         }
@@ -122,9 +130,15 @@ public class AuthRepositoryImpl implements AuthRepository {
             String userId = webTokenUtils.extractUserId(refreshToken);
             UserCredentials userCredentials = this.authJpa.findByUserId(userId).orElseThrow(() ->
                 new UnauthorizedException("Refresh token is invalid", CODE_REFRESH_TOKEN_IS_INVALID));
+            Pair<String, LocalDateTime> accessTokens =
+                webTokenUtils.generateAccessToken(userCredentials.getUserId());
+            Pair<String, LocalDateTime> refreshTokens=
+                webTokenUtils.generateRefreshToken(userCredentials.getUserId());
             return new UserToken(
-                webTokenUtils.generateAccessToken(userCredentials.getUserId()),
-                webTokenUtils.generateRefreshToken(userCredentials.getUserId())
+                accessTokens.a,
+                accessTokens.b,
+                refreshTokens.a,
+                refreshTokens.b
             );
         }
         throw new UnauthorizedException("Refresh token is invalid", CODE_REFRESH_TOKEN_IS_INVALID);

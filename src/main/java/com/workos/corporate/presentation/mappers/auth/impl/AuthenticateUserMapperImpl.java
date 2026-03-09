@@ -11,6 +11,8 @@ import com.workos.corporate.presentation.mappers.auth.UserCredentialsMapper;
 import com.workos.corporate.presentation.mappers.user.UserDetailsMapper;
 import org.springframework.stereotype.Component;
 
+import java.time.format.DateTimeFormatter;
+
 @Component
 public class AuthenticateUserMapperImpl implements AuthenticateUserMapper {
 
@@ -34,9 +36,12 @@ public class AuthenticateUserMapperImpl implements AuthenticateUserMapper {
 
     @Override
     public AuthenticationTokenResponseDto toResponseDto(UserToken userToken) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
         return new AuthenticationTokenResponseDto(
             userToken.accessToken(),
-            userToken.refreshToken()
+            userToken.accessTokenExpiresAt().format(formatter),
+            userToken.refreshToken(),
+            userToken.refreshTokenExpiresAt().format(formatter)
         );
     }
 }
