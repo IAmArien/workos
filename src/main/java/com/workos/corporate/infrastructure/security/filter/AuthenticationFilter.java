@@ -1,7 +1,8 @@
-package com.workos.corporate.infrastructure.security;
+package com.workos.corporate.infrastructure.security.filter;
 
 import com.workos.corporate.domain.auth.model.UserCredentials;
 import com.workos.corporate.infrastructure.auth.usecases.AuthUseCases;
+import com.workos.corporate.infrastructure.security.config.SecurityEndpoints;
 import com.workos.corporate.presentation.constants.HttpResponseStatus;
 import com.workos.corporate.presentation.utils.WebTokenUtils;
 import com.workos.corporate.shared.response.ApiErrors;
@@ -12,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -38,7 +38,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private final SecurityEndpoints securityEndpoints;
 
     public AuthenticationFilter(
-        @Lazy AuthUseCases authUseCases,
+        AuthUseCases authUseCases,
         ObjectMapper objectMapper,
         WebTokenUtils webTokenUtils,
         SecurityEndpoints securityEndpoints

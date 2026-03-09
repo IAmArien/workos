@@ -1,7 +1,7 @@
-package com.workos.corporate.infrastructure.security;
+package com.workos.corporate.infrastructure.security.config;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public interface SecurityConfig {
+public interface PasswordConfig {
     PasswordEncoder passwordEncoder();
 }

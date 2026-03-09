@@ -1,4 +1,4 @@
-package com.workos.corporate.infrastructure.security;
+package com.workos.corporate.infrastructure.security.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -1,7 +1,7 @@
 package com.workos.corporate.presentation.mappers.auth.impl;
 
 import com.workos.corporate.domain.auth.model.UserCredentials;
-import com.workos.corporate.infrastructure.security.SecurityConfig;
+import com.workos.corporate.infrastructure.security.config.PasswordConfig;
 import com.workos.corporate.presentation.constants.UserType;
 import com.workos.corporate.presentation.controllers.auth.dto.request.CreateUserCredentialsRequestDto;
 import com.workos.corporate.presentation.controllers.auth.dto.response.UserCredentialsResponseDto;
@@ -12,16 +12,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserCredentialsMapperImpl implements UserCredentialsMapper {
 
-    private final SecurityConfig securityConfig;
+    private final PasswordConfig passwordConfig;
 
-    public UserCredentialsMapperImpl(SecurityConfig securityConfig) {
-        this.securityConfig = securityConfig;
+    public UserCredentialsMapperImpl(PasswordConfig passwordConfig) {
+        this.passwordConfig = passwordConfig;
     }
 
     @Override
     public UserCredentials toEntity(CreateUserCredentialsRequestDto dto) {
         String userId = GlobalUtils.generateUUID();
-        String userPassword = securityConfig.passwordEncoder().encode(dto.password());
+        String userPassword = passwordConfig.passwordEncoder().encode(dto.password());
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUserId(userId);
         userCredentials.setUserEmail(dto.emailAddress());

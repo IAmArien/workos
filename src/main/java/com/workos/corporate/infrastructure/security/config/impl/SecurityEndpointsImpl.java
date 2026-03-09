@@ -1,6 +1,6 @@
-package com.workos.corporate.infrastructure.security.impl;
+package com.workos.corporate.infrastructure.security.config.impl;
 
-import com.workos.corporate.infrastructure.security.SecurityEndpoints;
+import com.workos.corporate.infrastructure.security.config.SecurityEndpoints;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;

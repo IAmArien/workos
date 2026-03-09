@@ -5,7 +5,7 @@ import com.workos.corporate.domain.auth.model.UserCredentials;
 import com.workos.corporate.domain.auth.model.UserToken;
 import com.workos.corporate.domain.auth.repository.AuthRepository;
 import com.workos.corporate.domain.user.model.UserDetails;
-import com.workos.corporate.infrastructure.security.SecurityConfig;
+import com.workos.corporate.infrastructure.security.config.PasswordConfig;
 import com.workos.corporate.infrastructure.user.repository.UserDetailsJpaRepository;
 import com.workos.corporate.presentation.utils.WebTokenUtils;
 import com.workos.corporate.shared.exception.BadRequestException;
@@ -33,18 +33,18 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     private final AuthJpaRepository authJpa;
     private final UserDetailsJpaRepository userJpa;
-    private final SecurityConfig securityConfig;
+    private final PasswordConfig passwordConfig;
     private final WebTokenUtils webTokenUtils;
 
     public AuthRepositoryImpl(
         AuthJpaRepository authJpa,
         UserDetailsJpaRepository userJpa,
-        SecurityConfig securityConfig,
+        PasswordConfig passwordConfig,
         WebTokenUtils webTokenUtils
     ) {
         this.authJpa = authJpa;
         this.userJpa = userJpa;
-        this.securityConfig = securityConfig;
+        this.passwordConfig = passwordConfig;
         this.webTokenUtils = webTokenUtils;
     }
 
@@ -98,7 +98,7 @@ public class AuthRepositoryImpl implements AuthRepository {
         }
         UserCredentials userCredentials = this.authJpa.findByUserEmail(email).orElseThrow(() ->
             new UnauthorizedException("Email address or password is incorrect", CODE_EM_PASS_IS_INVALID));
-        if (securityConfig.passwordEncoder().matches(password, userCredentials.getUserPassword())) {
+        if (passwordConfig.passwordEncoder().matches(password, userCredentials.getUserPassword())) {
             UserDetails userDetails = this.userJpa.findByUserId(userCredentials.getUserId()).orElseThrow(() ->
                 new UnauthorizedException(
                     String.format("Account registration for %s is not yet completed", email),
