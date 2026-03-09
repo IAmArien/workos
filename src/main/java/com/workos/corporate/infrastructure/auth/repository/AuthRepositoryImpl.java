@@ -20,6 +20,7 @@ import java.util.Optional;
 @Repository
 public class AuthRepositoryImpl implements AuthRepository {
 
+    private static final String CODE_USER_ID_IS_MISSING = "UDIDIM001";
     private static final String CODE_EMAIL_ALREADY_EXISTS = "EMAE001";
     private static final String CODE_EMAIL_IS_MISSING = "EMIM001";
     private static final String CODE_EMAIL_IS_NON_EXISTENT = "EMINE001";
@@ -48,8 +49,22 @@ public class AuthRepositoryImpl implements AuthRepository {
     }
 
     @Override
+    public UserCredentials getUserCredentialsByUserId(String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new UnprocessableEntityException("Request parameter userId is missing", CODE_USER_ID_IS_MISSING);
+        }
+        Optional<UserCredentials> userCredentials = this.authJpa.findByUserId(userId);
+        return userCredentials.orElseThrow(() ->
+            new NotFoundException(
+                String.format("Unable to find user with the userId: %s", userId),
+                CODE_USER_ID_IS_MISSING
+            )
+        );
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByEmail(String email) {
-        if (email.trim().isEmpty()) {
+        if (email == null || email.trim().isEmpty()) {
             throw new UnprocessableEntityException("Request parameter email is missing", CODE_EMAIL_IS_MISSING);
         }
         Optional<UserCredentials> userCredentials = this.authJpa.findByUserEmail(email);

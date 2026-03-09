@@ -1,5 +1,7 @@
 package com.workos.corporate.infrastructure.security;
 
+import com.workos.corporate.domain.auth.model.UserCredentials;
+import com.workos.corporate.infrastructure.auth.usecases.AuthUseCases;
 import com.workos.corporate.presentation.constants.HttpResponseStatus;
 import com.workos.corporate.presentation.utils.WebTokenUtils;
 import com.workos.corporate.shared.response.ApiErrors;
@@ -10,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -28,15 +31,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${app.security.api-key}") private String apiKey;
 
+    private final AuthUseCases authUseCases;
+
     private final ObjectMapper objectMapper;
     private final WebTokenUtils webTokenUtils;
     private final SecurityEndpoints securityEndpoints;
 
     public AuthenticationFilter(
+        @Lazy AuthUseCases authUseCases,
         ObjectMapper objectMapper,
         WebTokenUtils webTokenUtils,
         SecurityEndpoints securityEndpoints
     ) {
+        this.authUseCases = authUseCases;
         this.objectMapper = objectMapper;
         this.webTokenUtils = webTokenUtils;
         this.securityEndpoints = securityEndpoints;
@@ -69,8 +76,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         if (webTokenUtils.validateToken(token)) {
             String userId = webTokenUtils.extractUserId(token);
+            UserCredentials userCredentials = authUseCases.getUserCredentialsByUserId().execute(userId);
             UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                new UsernamePasswordAuthenticationToken(
+                    userCredentials.getUserId(),
+                    userCredentials,
+                    Collections.emptyList()
+                );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
             filterChain.doFilter(request, response);

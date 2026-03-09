@@ -17,6 +17,11 @@ public class AuthDataSourceImpl implements AuthDataSource {
     }
 
     @Override
+    public UserCredentials getUserCredentialsByUserId(String userId) {
+        return this.authRepository.getUserCredentialsByUserId(userId);
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByEmail(String email) {
         return this.authRepository.getUserCredentialsByEmail(email);
     }
