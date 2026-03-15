@@ -4,5 +4,5 @@ import com.workos.corporate.domain.user.model.UserSessions;
 import com.workos.corporate.presentation.controllers.auth.dto.request.UserDeviceRequestDto;
 
 public interface UserSessionsMapper {
-    UserSessions toEntity(UserDeviceRequestDto dto, String userId, String userAgent);
+    UserSessions toEntity(UserDeviceRequestDto dto, String userId, String sessionToken, String userAgent);
 }

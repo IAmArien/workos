@@ -83,7 +83,8 @@ public class AuthController {
         AuthenticateUserResponseDto responseDto = authenticateUserMapper.toResponseDto(userAuthentication);
 
         String userId = userAuthentication.userCredentials().getUserId();
-        UserSessions userSessions = userSessionsMapper.toEntity(dto.userDevice(), userId, userAgent);
+        String sessionToken = userAuthentication.sessionToken();
+        UserSessions userSessions = userSessionsMapper.toEntity(dto.userDevice(), userId, sessionToken, userAgent);
         userSessionsUseCases.createUserSession().execute(userSessions);
 
         String sessionId = userSessions.getSessionId();

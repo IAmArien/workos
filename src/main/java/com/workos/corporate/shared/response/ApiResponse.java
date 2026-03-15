@@ -5,6 +5,8 @@ import jakarta.annotation.Nullable;
 import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public class ApiResponse<T> {
@@ -15,7 +17,7 @@ public class ApiResponse<T> {
     @Nullable private final String description;
     @Nullable private final T data;
     @Nullable private final List<ApiErrors> errors;
-    private final Instant timestamp;
+    private final LocalDateTime timestamp;
 
     public ApiResponse(
         boolean success,
@@ -31,7 +33,7 @@ public class ApiResponse<T> {
         this.description = description;
         this.data = data;
         this.errors = errors;
-        this.timestamp = Instant.now();
+        this.timestamp = Instant.now().atZone(ZoneId.of("Asia/Manila")).toLocalDateTime();
     }
 
     public static <T> ApiResponse<T> success(T data, HttpResponseStatus status, String description) {
@@ -77,7 +79,7 @@ public class ApiResponse<T> {
         return errors;
     }
 
-    public Instant getTimestamp() {
+    public LocalDateTime getTimestamp() {
         return timestamp;
     }
 }

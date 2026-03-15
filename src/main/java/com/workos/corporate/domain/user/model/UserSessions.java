@@ -30,9 +30,11 @@ public class UserSessions {
     private String userAgent;
 
     @Column(name = "created_at", nullable = false)
+    @org.hibernate.annotations.CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @org.hibernate.annotations.UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @Column(name = "revoked", nullable = false)

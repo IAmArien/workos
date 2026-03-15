@@ -18,4 +18,9 @@ public class UserSessionsDataSourceImpl implements UserSessionsDataSource {
     public void createUserSession(UserSessions sessions) {
         this.userSessionRepository.createUserSession(sessions);
     }
+
+    @Override
+    public UserSessions getUserSessionBySessionId(String sessionId) {
+        return this.userSessionRepository.getUserSessionBySessionId(sessionId);
+    }
 }

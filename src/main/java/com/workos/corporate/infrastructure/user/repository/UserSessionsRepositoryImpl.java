@@ -17,4 +17,12 @@ public class UserSessionsRepositoryImpl implements UserSessionRepository {
     public void createUserSession(UserSessions sessions) {
         this.jpa.save(sessions);
     }
+
+    @Override
+    public UserSessions getUserSessionBySessionId(String sessionId) {
+        return this.jpa.findBySessionId(sessionId)
+            .orElseThrow(() ->
+                new IllegalStateException("Invalid session_id parameter provided")
+            );
+    }
 }

@@ -1,8 +1,10 @@
 package com.workos.corporate.infrastructure.security.filter;
 
 import com.workos.corporate.domain.auth.model.UserCredentials;
+import com.workos.corporate.domain.user.model.UserSessions;
 import com.workos.corporate.infrastructure.auth.usecases.AuthUseCases;
 import com.workos.corporate.infrastructure.security.config.SecurityEndpoints;
+import com.workos.corporate.infrastructure.user.usecases.UserSessionsUseCases;
 import com.workos.corporate.presentation.constants.HttpResponseStatus;
 import com.workos.corporate.presentation.utils.WebTokenUtils;
 import com.workos.corporate.shared.response.ApiErrors;
@@ -32,6 +34,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Value("${app.security.api-key}") private String apiKey;
 
     private final AuthUseCases authUseCases;
+    private final UserSessionsUseCases userSessionsUseCases;
 
     private final ObjectMapper objectMapper;
     private final WebTokenUtils webTokenUtils;
@@ -39,11 +42,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     public AuthenticationFilter(
         AuthUseCases authUseCases,
+        UserSessionsUseCases userSessionsUseCases,
         ObjectMapper objectMapper,
         WebTokenUtils webTokenUtils,
         SecurityEndpoints securityEndpoints
     ) {
         this.authUseCases = authUseCases;
+        this.userSessionsUseCases = userSessionsUseCases;
         this.objectMapper = objectMapper;
         this.webTokenUtils = webTokenUtils;
         this.securityEndpoints = securityEndpoints;
@@ -75,6 +80,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
         if (webTokenUtils.validateToken(token)) {
+            String sessionToken = webTokenUtils.extractSessionToken(token);
+            UserSessions userSessions = userSessionsUseCases.getUserSessionBySessionId().execute(sessionToken);
+            if (userSessions.getRevoked()) {
+                unauthorized(response, "Invalid/Missing Bearer token", CODE_UNAUTHORIZED_REQUESTS);
+                return;
+            }
             String userId = webTokenUtils.extractUserId(token);
             UserCredentials userCredentials = authUseCases.getUserCredentialsByUserId().execute(userId);
             UsernamePasswordAuthenticationToken authToken =
