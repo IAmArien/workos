@@ -88,14 +88,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
             String userId = webTokenUtils.extractUserId(token);
             UserCredentials userCredentials = authUseCases.getUserCredentialsByUserId().execute(userId);
-            UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(
-                    userCredentials.getUserId(),
-                    userCredentials,
-                    Collections.emptyList()
-                );
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                        userCredentials.getUserId(),
+                        userCredentials,
+                        Collections.emptyList()
+                    );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
             filterChain.doFilter(request, response);
             return;
         }
