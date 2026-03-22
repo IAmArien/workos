@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workos-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workos-service
+  template:
+    metadata:
+      labels:
+        app: workos-service
+    spec:
+      containers:
+        - name: workos-container
+          image: iamarien/workos-repository:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-service:3306/workosdb"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "p@ssw0rd"
+            - name: APP_SECURITY_API_KEY
+              value: "bMSvzHMwEFa4WZRs7A8yMm3sExgmurNj"
+            - name: JWT_SECRET
+              value: "JTrBUirpYcvGvfFN9inLBvR2I3wzCTQY"
+            - name: JWT_ACCESS_TOKEN_EXPIRATION
+              value: "900000"
+            - name: JWT_REFRESH_TOKEN_EXPIRATION
+              value: "604800000"
